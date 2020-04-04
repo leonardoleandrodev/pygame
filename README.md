@@ -1,2 +1,3 @@
 # pygame
-pong game in python
+pong game in python with POO
+
