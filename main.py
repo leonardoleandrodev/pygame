@@ -4,11 +4,13 @@ import time
 import random
 LARGURA_JANELA = 1024
 ALTURA_JANELA = 768
-FRAMES = 59
+FRAMES = 60
 run = True
 fm = 0
 db = ""
 pause = False
+
+lstBola = []
 class Jogador:
     tamanho = [30,90]
     posX = 0#posicao largura
@@ -40,7 +42,7 @@ class Bola:
     
     def posInicial(self):
         self.posX = (LARGURA_JANELA/2)
-        self.posY = (ALTURA_JANELA/2)
+        self.posY = random.randint(0,ALTURA_JANELA)
         self.moveLeft = bool(random.getrandbits(1))
         self.moveUp = bool(random.getrandbits(1))
         self.velocidade=2
@@ -94,6 +96,7 @@ jg2.posY = (ALTURA_JANELA/2)-(jg2.tamanho[1]/2)
 bola = Bola()
 bola.cor = (255,100,0)
 bola.posInicial()
+lstBola.append(bola)
 def debug(msg):
     global fontDebug
     text = fontDebug.render(msg, True, [10,10,255])
@@ -104,26 +107,35 @@ def painel():
     txt = "PLAYER 1: {}   VS   PLAYER 2: {}".format(jg1.pontos,jg2.pontos)
     text = fontPainel.render(txt , True, [10,200,10])
     screen.blit(text, [5,10])
+
+
 def atualizar():
     global screen,run,jg1,jg2,bola,db,pause
-    bola.colisionWall()
+    for b in lstBola:
+        b.colisionWall()
+
     inputs()
-    if bola.posY+bola.tamanho[1] > jg1.posY and bola.posY < jg1.posY+jg1.tamanho[1]:
-        if bola.posX < jg1.posX+jg1.tamanho[0] and bola.posX+bola.tamanho[0] > jg1.posX:
-            bola.moveLeft = not bola.moveLeft
-            bola.posX+=7
-            bola.speedUp()
-            db = clock,bola.posX,bola.posY,jg1.posY,jg1.posY
-    if bola.posY+bola.tamanho[1] > jg2.posY and bola.posY < jg2.posY+jg1.tamanho[1]:
-        if bola.posX+bola.tamanho[0] > jg2.posX and bola.posX < jg2.posX+jg2.tamanho[0]:
-            bola.moveLeft = not bola.moveLeft
-            bola.posX-=7
-            bola.speedUp()
-            db = clock,bola.posX,bola.posY,jg2.posY,jg2.posY
+    for b in lstBola:
+        b.desenhar()
+        if b.posY+b.tamanho[1] > jg1.posY and b.posY < jg1.posY+jg1.tamanho[1]:
+            if b.posX < jg1.posX+jg1.tamanho[0] and b.posX+b.tamanho[0] > jg1.posX:
+                b.moveLeft = not b.moveLeft
+                b.posX+=7
+                b.speedUp()
+                db = clock,b.posX,b.posY,jg1.posY,jg1.posY
+                jg1.pontos-=2
+        if b.posY+b.tamanho[1] > jg2.posY and b.posY < jg2.posY+jg1.tamanho[1]:
+            if b.posX+b.tamanho[0] > jg2.posX and b.posX < jg2.posX+jg2.tamanho[0]:
+                b.moveLeft = not b.moveLeft
+                b.posX-=7
+                b.speedUp()
+                db = clock,b.posX,b.posY,jg2.posY,jg2.posY
+                jg2.pontos-=2
 
     jg1.velocidade = bola.velocidade*2
     jg2.velocidade = bola.velocidade*2
-    bola.move()
+    for b in lstBola:
+        b.move()
     debug("{}".format(db))
 
 
@@ -146,12 +158,19 @@ def inputs():
     if keys[K_ESCAPE] or keys[K_q]:
         run = False
 
-
+    if keys[K_n]:
+        print(len(lstBola))
+        if clock.get_fps() > 57:
+            bola = Bola()
+            bola.cor = (random.randint(1,255),random.randint(1,255),random.randint(1,255))
+            bola.posInicial()
+            lstBola.append(bola)
 
 def desenhar():
     jg1.desenhar()
     jg2.desenhar()
-    bola.desenhar()
+    for b in lstBola:
+        b.desenhar()
     painel()
     
     
